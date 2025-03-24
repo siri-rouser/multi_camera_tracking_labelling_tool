@@ -2,7 +2,7 @@
 
 This repository contains a toolkit for labeling ground truth data in multi-camera object tracking datasets. It provides a suite of tools for manually correcting the outputs of object detectors and trackers, as well as for associating single-camera tracklets into multi-camera trajectories.
 
-*Note before use: You need to have your own object-detector and object-tracker before using this toolkit.*
+**Note before use: You need to have your own object-detector and object-tracker before using this toolkit.**
 
 ## Overview
 
