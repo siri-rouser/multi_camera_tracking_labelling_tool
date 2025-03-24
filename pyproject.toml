@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "multi-camera-tracking-labelling-tool"
+version = "0.1.0"
+description = "toolkit for multi-camera labelling"
+authors = ["siri-rouser <yu.q.lin12@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+opencv-python = "^4.11.0.86"
+numpy = "^2.2.4"
+pandas = "^2.2.3"
+scipy = "^1.15.2"
+motmetrics = "^1.4.0"
+pytrec-eval = "^0.5"
+pillow = "^11.0.0"
+collection = "^0.1.6"
+argparse = "^1.4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
