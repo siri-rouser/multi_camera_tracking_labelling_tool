@@ -67,8 +67,14 @@ Evaluates your results against the ground truth. Usage:python eval_label.py <gro
 - **GT_vis.py**  
 Visualizes the ground truth results.
 
-- **video_process.py**  
-Visualizes the single-camera tracking results.
+- **sct_video_process.py**  
+Visualizes and interpolate the single camera tracking results(for GT).
+
+- **sct_vits.py**  
+Used for vis the single-camera tracking results by my own tracker.
+
+- **eval_sct.py** 
+Evaluate the results again the single camera tracking ground turth. Usage:python eval_label.py <ground_truth> <prediction>
 
 ## Example Directory Structure
 
@@ -129,6 +135,20 @@ Dataset/
     │   └── tracking_video/
     │       └── imagesNB_tracking_interpolated.mp4
 ```
+
+## Workflow Example
+
+This workflow outlines the pipeline for **Multi-Camera Multi-Object (Vehicle) Tracking**:
+
+1. **Object Detection** (e.g., YOLO)
+2. **wipe_point.py** (Noise removal from detections)
+3. **detect_correction.py** (Bounding box refinement)
+4. **detection_crop_tppl.py** (Prepare detections for feature extraction)
+5. **Feature Extraction** (e.g., ResNet)
+6. **Single Camera Tracker** (e.g., DeepSORT)
+7. **sct_video_process.py** (Post-process single-camera tracking results)
+8. **cross_camera_match.py** (Match objects across multiple cameras)
+9. **GT_vis.py** (Visualization of tracking results)
 
 
 ## Contributing
