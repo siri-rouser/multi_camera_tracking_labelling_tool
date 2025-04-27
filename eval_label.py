@@ -18,6 +18,33 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+def frame_stats(df, cam=None):
+    """
+    Count unique frames and report any that are missing.
+    If `cam` is given, restrict the check to that CameraId.
+    """
+    if cam is not None:
+        df = df.query("CameraId == @cam")
+
+    frames = df['FrameId']
+    unique_cnt = frames.nunique()
+    fmin, fmax = frames.min(), frames.max()
+
+    # every integer between min and max that is NOT present
+    missing = sorted(set(range(fmin, fmax + 1)) - set(frames))
+
+    print(f"Camera   : {cam if cam is not None else 'ALL'}")
+    print(f"# frames : {unique_cnt}")
+    print(f"range    : {fmin} → {fmax}")
+    if missing:
+        print(f"missing  : {len(missing)} (showing first 20) → {missing[:20]}")
+    else:
+        print("missing  : none ✅")
+
+    return unique_cnt, missing
+
+
+
 def get_args():
     parser = ArgumentParser(add_help=False, usage=usageMsg())
     parser.add_argument("data", nargs=2, help="Path to <test_labels> <predicted_labels>.")
@@ -91,7 +118,7 @@ def readData(fpath):
     ----------
         May raise a ValueError exception if file cannot be opened or read.
     """
-    names = ['CameraId','Id', 'FrameId', 'X', 'Y', 'Width', 'Height', 'Xworld', 'Yworld']
+    names = ['CameraId','Id', 'FrameId', 'X', 'Y', 'Width', 'Height', 'Xworld', 'Yworld', 'Ori']
         
     if not os.path.isfile(fpath):
         raise ValueError("File %s does not exist." % fpath)
@@ -241,7 +268,7 @@ def eval(test, pred, **kwargs):
             maxFrameId += mfid
 
         # compute multi-camera tracking evaluation stats
-        multiCamAcc = mm.utils.compare_to_groundtruth(pd.concat(gtds), pd.concat(tsds), 'iou')
+        multiCamAcc = mm.utils.compare_to_groundtruth(pd.concat(gtds), pd.concat(tsds), 'iou', distfields=None, distth=0.6)
         metrics=list(mm.metrics.motchallenge_metrics)
         metrics.extend(['num_frames','idfp','idfn','idtp'])
         print(metrics)
@@ -275,6 +302,8 @@ if __name__ == '__main__':
     print(test)
     pred = readData(args.data[1])
     print(pred)
+
+    frame_stats(pred,cam=2)
     try:
         summary = eval(test, pred, mread=args.mread, dstype=args.dstype, roidir=args.roidir)
         print_results(summary, mread=args.mread)

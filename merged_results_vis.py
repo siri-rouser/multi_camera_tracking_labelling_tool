@@ -51,7 +51,7 @@ def main():
     img_dirs = {cam: os.path.join(base_detection, cam, 'img1') for cam in cam_list}
     
     # Path to the ground truth file (adjust if needed)
-    res_file = 'merged_results.txt'
+    res_file = 'multi_camera_ground.txt'
     data = load_ground_truth(res_file)
     
     # Determine overall frame range for each camera (we assume frames are numbered as in the GT file)

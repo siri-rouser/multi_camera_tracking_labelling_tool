@@ -1,21 +1,29 @@
 import cv2
 import os
+import argparse
 import sys
 import numpy as np
 import random
 from collections import defaultdict
 
-def main(seq):
+def main(arg):
     # Base directories (adjust paths as necessary)
+    seq= arg.seq
     base_detect_merge = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     base_detection = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection'
     
     # Interpolated tracking result file (assumed generated previously)
-    interp_file = 'tracking_res.txt'
+    if seq == 'imagesSB':
+        interp_file = 'stream2.txt'
+    elif seq == 'imagesNB':
+        interp_file = 'stream1.txt'
+    else:
+        print(f"Unknown sequence: {seq}")
+        return
     # Directory containing original images (full resolution)
     img_dir = os.path.join(base_detection, seq, 'img1')
     # Output video directory and file
-    video_out_path = 'tracking_video.mp4'
+    video_out_path = f'tracking_video_{seq}.mp4'
     
     # Build a dictionary mapping frame numbers to detections and record track bounds.
     # Each detection is (track_id, (x1, y1, x2, y2), class)
@@ -101,5 +109,8 @@ def main(seq):
     print(f"\nSaved interpolated tracking video for {seq} at {video_out_path}")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Visualize tracking results.")
+    parser.add_argument('--seq', type=str, default='imagesSB', help='Sequence name')
+    args = parser.parse_args()
 
-    main('imagesSB')
+    main(args)

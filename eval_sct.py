@@ -56,6 +56,7 @@ def load_data(filepath):
     
     # Set multi-index as (frame, track_id) as expected by motmetrics.
     df = df.set_index(["frame", "track_id"])
+    df.index.names = ['FrameId', 'Id']
     
     return df[["X", "Y", "Width", "Height"]]
 
@@ -70,7 +71,9 @@ def main():
     # Load ground truth and prediction data.
     gt = load_data(args.groundtruth)
     pred = load_data(args.prediction)
-    
+    print("Ground truth data:", gt)
+    print("Prediction data:", pred)
+
     # Use motmetrics' utility function to compare to ground truth using IOU.
     try:
         acc = mm.utils.compare_to_groundtruth(gt, pred, "iou")
@@ -83,7 +86,8 @@ def main():
     summary = mh.compute(acc, metrics=mm.metrics.motchallenge_metrics, name="SingleCamera")
     
     # Render the results as a human-readable summary.
-    print(mm.io.render_summary(summary, formatters=mm.io.motchallenge_metric_names))
+    print(mm.io.render_summary(summary, formatters=mh.formatters, namemap=mm.io.motchallenge_metric_names))
+
     
 if __name__ == '__main__':
     main()
