@@ -72,6 +72,13 @@ Visualizes the ground truth results.
 - **sct_video_process.py**  
 Visualizes and interpolate the single camera tracking results(for GT).
 
+- **sct_correction.py**  
+Correct and edit the single camera tracking results
+- `i`: Intergated two tracklets into one unified trajectory
+- `d`: Delete an existing tracklet.
+- `w`: Write and quite the corrected/edited results into .txt and visualize it to a .mp4 file.
+- `q`: quit the program without saving the results.
+
 - **sct_vits.py**  
 Used for vis the single-camera tracking results by my own tracker.
 
@@ -148,9 +155,10 @@ This workflow outlines the pipeline for **Multi-Camera Multi-Object (Vehicle) Tr
 4. **detection_crop_tppl.py** (Prepare detections for feature extraction)
 5. **Feature Extraction** (e.g., ResNet)
 6. **Single Camera Tracker** (e.g., DeepSORT)
-7. **sct_video_process.py** (Post-process single-camera tracking results)
-8. **cross_camera_match.py** (Match objects across multiple cameras)
-9. **GT_vis.py** (Visualization of tracking results)
+7. **sct_video_process.py** (Post-process single-camera tracking results1)
+8. **sct_correction.py** (Post-process single-camera tracking results2)
+9. **cross_camera_match.py** (Match objects across multiple cameras)
+10. **GT_vis.py** (Visualization of tracking results)
 
 
 ## Contributing
