@@ -1,10 +1,16 @@
 import cv2
 import os
 import sys
+import argparse
 
 # Base directory for detection results
 base_dir = '/dataset/detect_merge'
-seqs = ['imagesSB', 'imagesNB']
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Process detection results.")
+parser.add_argument('--seqs', nargs='+', required=True, help="List of sequences to process.")
+args = parser.parse_args()
+
+seqs = args.seqs
 
 # Processing parameters
 conf_threshold = 0.35
@@ -13,7 +19,7 @@ fps = 15
 
 for seq in seqs:
     # Setup directories for images, labels, output filtered labels and video
-    img_dir = os.path.join('/dataset/detection', seq, 'img1')
+    img_dir = os.path.join('/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection', seq, 'img1')
     label_dir = os.path.join(base_dir, seq, 'labels_corrected')
     output_label_dir = os.path.join(base_dir, seq, 'labels_filtered')
     video_output_dir = os.path.join(base_dir, seq, 'video')

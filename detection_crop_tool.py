@@ -1,14 +1,20 @@
 import cv2
 import os
 import pickle
+import argparse
 
 # Directories for original images and filtered labels
 # Original images from the detector
-base_img_dir = '/dataset/detection'
+base_img_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection'
 # Labels from the post process step (filtered labels)
-base_label_dir = '/dataset/detect_merge'
+base_label_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
 
-seqs = ['imagesNB', 'imagesSB']
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Crop detections from images based on filtered labels.")
+parser.add_argument('--seqs', nargs='+', required=True, help="List of sequences to process.")
+args = parser.parse_args()
+
+seqs = args.seqs
 
 for seq in seqs:
     out_dict = {}

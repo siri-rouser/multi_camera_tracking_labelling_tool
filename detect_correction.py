@@ -1,5 +1,6 @@
 import cv2
 import os
+import argparse
 
 def is_point_in_bbox(point, bbox):
     """
@@ -33,16 +34,20 @@ def check_class_id(point,img_file):
 
 
 # Paths setup
-base_img_dir = '/dataset/detection'
-seqs = ['imagesSB']
+base_img_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection'
+parser = argparse.ArgumentParser(description="Multi-camera tracking labeling tool")
+parser.add_argument('--seqs', nargs='+', required=True, help="List of sequences to process")
+args = parser.parse_args()
 
-display_scale = 0.8 
+seqs = args.seqs
+
+display_scale = 0.9 
 
 for seq in seqs:
     img_dir = os.path.join(base_img_dir, seq, 'img1')
-    label_dir = f'/dataset/detect_merge/{seq}/labels_xy/'
-    label_dir_corrected = f'/dataset/detect_merge/{seq}/labels_corrected/'
-    img_dir_corrected = f'/dataset/detect_merge/{seq}/images_corrected/'
+    label_dir = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_xy/'
+    label_dir_corrected = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_corrected/'
+    img_dir_corrected = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/images_corrected/'
     img_files = sorted(os.listdir(img_dir))
     os.makedirs(label_dir_corrected, exist_ok=True)
     os.makedirs(img_dir_corrected, exist_ok=True)
@@ -88,7 +93,7 @@ for seq in seqs:
             for idx, (cls_id, x1, y1, x2, y2, conf) in enumerate(bboxes):
                 cv2.rectangle(img_display, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
                 cv2.putText(img_display, f'Class {int(cls_id)} idx {idx}', (int(x1), int(y1)-10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                 
             cv2.imshow(window_name, img_display)
             key = cv2.waitKey(0)
@@ -135,6 +140,37 @@ for seq in seqs:
                 print(f'saved {img_file} to {txt_path_corrected}')  
                 cv2.destroyAllWindows()
                 break
+
+            elif key == ord('m'):
+                try:
+                    id1 = int(input('Enter the first index of bbox to merge: '))
+                    id2 = int(input('Enter the second index of bbox to merge: '))
+                    
+                    if id1 < 0 or id1 >= len(bboxes) or id2 < 0 or id2 >= len(bboxes) or id1 == id2:
+                        print("Invalid indices. Please enter valid and distinct indices.")
+                        continue
+                    
+                    bbox1 = bboxes[id1]
+                    bbox2 = bboxes[id2]
+                    
+                    x1 = min(bbox1[1], bbox2[1])
+                    y1 = min(bbox1[2], bbox2[2])
+                    x2 = max(bbox1[3], bbox2[3])
+                    y2 = max(bbox1[4], bbox2[4])
+                    
+                    # Use the class ID of the first bbox or prompt the user for a new class ID
+                    class_id = int(input(f"Enter class ID for the merged bbox (default {int(bbox1[0])}): ") or bbox1[0])
+                    conf = 1
+                    
+                    # Remove the bboxes in reverse order to avoid index shifting
+                    for idx in sorted([id1, id2], reverse=True):
+                        removed_bbox = bboxes.pop(idx)
+                        print(f"Removed bbox: {removed_bbox}")
+                    
+                    bboxes.append([class_id, x1, y1, x2, y2, conf])
+                    print(f"Merged bbox: {bboxes[-1]}")
+                except ValueError:
+                    print("Invalid input. Please enter numeric indices.")
 
             # Press 'q' during reviewing images to quit the loop
             elif key == ord('q'):

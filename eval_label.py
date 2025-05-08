@@ -303,7 +303,7 @@ if __name__ == '__main__':
     pred = readData(args.data[1])
     print(pred)
 
-    frame_stats(pred,cam=2)
+    # frame_stats(pred,cam=2)
     try:
         summary = eval(test, pred, mread=args.mread, dstype=args.dstype, roidir=args.roidir)
         print_results(summary, mread=args.mread)

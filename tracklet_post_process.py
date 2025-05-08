@@ -13,10 +13,10 @@ def linear_interpolate(bbox1, bbox2, alpha):
 
 def main():
     # Base directories (adjust these paths as needed)
-    base_tracking_dir = '/dataset/detect_merge'
-    base_img_dir = '/dataset/detection'
-    seqs = ['imagesSB', 'imagesNB']
-    fps = 15  # Video frame rate
+    base_tracking_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
+    base_img_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/dataset/detection'
+    seqs = ['imagesc002', 'imagesc003', 'imagesc004']
+    fps = 30  # Video frame rate
     
     for seq in seqs:
         print(f"Processing sequence {seq}...")
@@ -76,19 +76,19 @@ def main():
                 interpolated_results.append((frm, tid, bbox[0], bbox[1], bbox[2], bbox[3], cls))
         
         # inspect fragile tracklets
-        for tid in tracks:
-            if len(tracks[tid]) < 5:
-                print(f"Track {tid} only has {len(tracks[tid])} detections")
+        # Remove tracks with less than 5 detections
+        tracks = {tid: det_list for tid, det_list in tracks.items() if len(det_list) >= 5}
+        print(f"Removed tracks with less than 5 detections. Remaining tracks: {len(tracks)}")
 
 
-        # # Save the interpolated results to a text file.
-        # interpolated_results.sort(key=lambda x: (x[0], x[1]))  # sort by frame then track id
-        # interpolated_file = os.path.join(base_tracking_dir, seq, f"{seq}_mot_interpolated.txt")
-        # with open(interpolated_file, 'w') as f:
-        #     for res in interpolated_results:
-        #         # Format: frame track_id x1 y1 x2 y2 class
-        #         f.write(f"{res[0]} {res[1]} {res[2]:.2f} {res[3]:.2f} {res[4]:.2f} {res[5]:.2f} {res[6]}\n")
-        # print(f"Interpolated tracking results saved to {interpolated_file}")
+        # Save the interpolated results to a text file.
+        interpolated_results.sort(key=lambda x: (x[0], x[1]))  # sort by frame then track id
+        interpolated_file = os.path.join(base_tracking_dir, seq, f"{seq}_mot_interpolated.txt")
+        with open(interpolated_file, 'w') as f:
+            for res in interpolated_results:
+                # Format: frame track_id x1 y1 x2 y2 class
+                f.write(f"{res[0]} {res[1]} {res[2]:.2f} {res[3]:.2f} {res[4]:.2f} {res[5]:.2f} {res[6]}\n")
+        print(f"Interpolated tracking results saved to {interpolated_file}")
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ from collections import defaultdict
 
 def main(seq):
     # Base directories (adjust paths as necessary)
-    base_detect_merge = '/dataset/detect_merge'
+    base_detect_merge = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     base_detection = '/dataset/detection'
     
     # Interpolated tracking result file (assumed generated previously)
@@ -56,6 +56,8 @@ def main(seq):
     # Read first image to get frame dimensions.
     first_img_path = os.path.join(img_dir, f"img{start_frame:06d}.jpg")
 
+
+
     first_img = cv2.imread(first_img_path)
     if first_img is None:
         print(f"Failed to read first image: {first_img_path}")
@@ -103,7 +105,7 @@ def main(seq):
     print(f"\nSaved interpolated tracking video for {seq} at {video_out_path}")
 
 if __name__ == "__main__":
-    seqs = ['imagesNB','imagesSB']
+    seqs = ['imagesc001','imagesc002','imagesc003','imagesc004']
     for seq in seqs:
         print(f"Processing sequence {seq}...")
         main(seq)
