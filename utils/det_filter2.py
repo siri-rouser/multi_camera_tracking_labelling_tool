@@ -1,16 +1,11 @@
 import cv2
 import os
 import sys
-import argparse
 
 # Base directory for detection results
 base_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
-# Parse command-line arguments
-parser = argparse.ArgumentParser(description="Process detection results.")
-parser.add_argument('--seqs', nargs='+', required=True, help="List of sequences to process.")
-args = parser.parse_args()
 
-seqs = args.seqs
+seqs = ['imagesc004']
 
 # Processing parameters
 conf_threshold = 0.35
@@ -20,12 +15,12 @@ fps = 15
 for seq in seqs:
     # Setup directories for images, labels, output filtered labels and video
     img_dir = os.path.join('/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection', seq, 'img1')
-    label_dir = os.path.join(base_dir, seq, 'labels_corrected')
-    output_label_dir = os.path.join(base_dir, seq, 'labels_filtered')
-    video_output_dir = os.path.join(base_dir, seq, 'video')
-    
+    label_dir = os.path.join(base_dir, seq, 'labels_wiped')
+    output_label_dir = os.path.join(base_dir, seq, 'labels_filtered2')
+    output_img_dir = os.path.join(base_dir, seq, 'images_filtered2')
+
     os.makedirs(output_label_dir, exist_ok=True)
-    os.makedirs(video_output_dir, exist_ok=True)
+    os.makedirs(output_img_dir, exist_ok=True)
     
     # Get list of image files (assuming .jpg or .png, adjust as needed)
     img_files = sorted(os.listdir(img_dir))
@@ -40,12 +35,6 @@ for seq in seqs:
         print(f"Could not read {first_img_path}.")
         continue
     height, width, _ = first_img.shape
-
-
-    # Set up the video writer
-    video_output_path = os.path.join(video_output_dir, f"{seq}.avi")
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(video_output_path, fourcc, fps, (width, height))
 
     for img_file in img_files:
         img_path = os.path.join(img_dir, img_file)
@@ -68,7 +57,7 @@ for seq in seqs:
                 parts = line.strip().split()
                 if len(parts) < 6:
                     continue  # Skip invalid lines
-                cls_id = int(parts[0])
+                cls_id = str(parts[0])
                 x1 = int(float(parts[1]))
                 y1 = int(float(parts[2]))
                 x2 = int(float(parts[3]))
@@ -96,9 +85,5 @@ for seq in seqs:
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
             cv2.putText(img, f'Class {cls_id}', (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-        
-        # Write the processed frame to the video
-        out.write(img)
-    
-    out.release()
-    print(f"Processed sequence {seq} and saved video to {video_output_path}")
+            
+        cv2.imwrite(os.path.join(output_img_dir,img_file), img)

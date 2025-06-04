@@ -2,6 +2,7 @@ import cv2
 import os
 import numpy as np
 import random
+import argparse
 
 def linear_interpolate(bbox1, bbox2, alpha):
     """
@@ -15,8 +16,12 @@ def main():
     # Base directories (adjust these paths as needed)
     base_tracking_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     base_img_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/dataset/detection'
-    seqs = ['imagesc002', 'imagesc003', 'imagesc004']
-    fps = 30  # Video frame rate
+    parser = argparse.ArgumentParser(description="Process tracking sequences.")
+    parser.add_argument('--seqs', nargs='+', required=True, help="List of sequences to process.")
+    args = parser.parse_args()
+
+    seqs = args.seqs
+    fps = 15
     
     for seq in seqs:
         print(f"Processing sequence {seq}...")
@@ -60,7 +65,8 @@ def main():
                 frame_j, bbox_j, cls_j = det_list[i + 1]
                 full_list.append((frame_i, bbox_i, cls_i))
                 gap = frame_j - frame_i
-                if gap > 1 and gap < 5:
+                if gap > 1:  # Interpolate only for small gaps
+                    print(f"Interpolating track {tid} from frame {frame_i} to {frame_j} (gap: {gap})")
                     # For each missing frame, perform linear interpolation.
                     for f in range(frame_i + 1, frame_j):
                         alpha = (f - frame_i) / (frame_j - frame_i)
@@ -70,16 +76,18 @@ def main():
             full_list.append(det_list[-1])
             # Ensure the detections for the track are sorted by frame.
             full_list = sorted(full_list, key=lambda x: x[0])
-            tracks[tid] = full_list
-            # Add to the overall results list.
-            for (frm, bbox, cls) in full_list:
-                interpolated_results.append((frm, tid, bbox[0], bbox[1], bbox[2], bbox[3], cls))
+            if len(full_list) < 6:
+                print(f"Track {tid} has less than 5 detections after interpolation. Skipping.")
+                continue
+            else:
+                tracks[tid] = full_list
+                # Add to the overall results list.
+                for (frm, bbox, cls) in full_list:
+                    interpolated_results.append((frm, tid, bbox[0], bbox[1], bbox[2], bbox[3], cls))
         
-        # inspect fragile tracklets
         # Remove tracks with less than 5 detections
         tracks = {tid: det_list for tid, det_list in tracks.items() if len(det_list) >= 5}
-        print(f"Removed tracks with less than 5 detections. Remaining tracks: {len(tracks)}")
-
+        print(f"Remaining tracks: {len(tracks)}")
 
         # Save the interpolated results to a text file.
         interpolated_results.sort(key=lambda x: (x[0], x[1]))  # sort by frame then track id

@@ -34,19 +34,13 @@ def load_data(cam):
     return data
 
 
-def format_detection_line(cam, info, id_index):
+def format_detection_line(cam_num, info, id_index):
     """
     Formats a detection into a line with the following fields:
       camera_id, obj_id, frame_id, xmin, ymin, width, height, xworld, yworld
     Expects 'info' to be a tuple: (frame, [x1, y1, x2, y2], cls).
     Here, xworld and yworld are fixed to -1.
     """
-    if cam == 'imagesNB':
-        cam = 1
-    elif cam == 'imagesSB':
-        cam = 2
-    else:
-        print(f"Invalid camera: {cam}")
     frame_num = int(info[0])
     bbox = info[1]
     x1, y1, x2, y2 = bbox
@@ -54,7 +48,7 @@ def format_detection_line(cam, info, id_index):
     height = y2 - y1
     xworld = -1
     yworld = -1
-    line = f"{cam} {id_index} {frame_num} {x1:.2f} {y1:.2f} {width:.2f} {height:.2f} {xworld} {yworld}"
+    line = f"{cam_num} {id_index} {frame_num} {x1:.2f} {y1:.2f} {width:.2f} {height:.2f} {xworld} {yworld}"
     return line
 
 def get_current_id_index(filename):
@@ -74,6 +68,10 @@ def get_current_id_index(filename):
                         max_id = obj_id
                 except ValueError:
                     continue
+    else:
+        print(f"File {filename} does not exist. Creating a new file.")
+        with open(filename, 'w') as f:
+            pass  # Create an empty file
     return max_id + 1
 
 
@@ -118,18 +116,23 @@ def delete_pair(ground_truth_file):
                 f.write(pair[1] + "\n")
     print("Pair deleted.")
 
-def main(tracklet_dict):
+def main(tracklet_dict,cam_list):
     """
     Interactive loop for creating ground truth pairs.
     The user can add a new pair or delete an existing pair.
     The results are saved to a text file.
     """
+    try:
+        numeric_id_0 = int(cam_list[0].split('imagesc')[1])
+        numeric_id_1 = int(cam_list[1].split('imagesc')[1])
+    except ValueError:
+        print(f"Invalid camera id format: {cam_list[0]}")
+        return
     record_dict = {}
-    record_dict['imagesNB'] = {}
-    record_dict['imagesSB'] = {}
+    record_dict[f'{cam_list[0]}'] = {}
+    record_dict[f'{cam_list[1]}'] = {}
 
-    # NB is camera 1, SB is camera 2
-    ground_truth_file = "multi_camera_ground_truth.txt"
+    ground_truth_file = f"{cam_list[0]}_{cam_list[1]}_ground_truth.txt"
 
     id_index = get_current_id_index(ground_truth_file)
 
@@ -139,17 +142,17 @@ def main(tracklet_dict):
         if cmd == 'q':
             break
         elif cmd == 'a':
-            cam_choice = input("Enter first camera id (enter 1 for imagesNB, 2 for imagesSB): ").strip()
-            if cam_choice == '1':
-                cam1 = 'imagesNB'
-            elif cam_choice == '2':
-                cam1 = 'imagesSB'
+            cam_choice = input(f"Enter first camera id (enter {numeric_id_0} for {cam_list[0]}, {numeric_id_1} for {cam_list[1]}): ").strip()
+            if cam_choice == str(numeric_id_0):
+                cam1 = f'{cam_list[0]}'
+            elif cam_choice == str(numeric_id_1):
+                cam1 = f'{cam_list[1]}'
             else:
                 print("Invalid camera choice.")
                 continue
 
             # The other camera:
-            cam2 = 'imagesSB' if cam1 == 'imagesNB' else 'imagesNB'
+            cam2 = f'{cam_list[1]}' if cam1 == f'{cam_list[0]}' else f'{cam_list[0]}'
 
             try:
                 track_id_cam1 = int(input(f'Enter track id for {cam1}: ').strip())
@@ -168,23 +171,26 @@ def main(tracklet_dict):
             # Get information for each camera.
             info_cam1 = sorted(tracklet_dict[cam1][track_id_cam1], key=lambda x: x[0])
             info_cam2 = sorted(tracklet_dict[cam2][track_id_cam2], key=lambda x: x[0])
+            
+            cam1_num = numeric_id_0 if cam1 == f'{cam_list[0]}'else numeric_id_1
+            cam2_num = numeric_id_1 if cam1 == f'{cam_list[0]}'else numeric_id_0
 
             with open(ground_truth_file, 'a') as f:
                 min_length = min(len(info_cam1), len(info_cam2))
                 for info1, info2 in zip(info_cam1[:min_length], info_cam2[:min_length]):
-                    line1 = format_detection_line(cam1, info1, id_index)
-                    line2 = format_detection_line(cam2, info2, id_index)
+                    line1 = format_detection_line(cam1_num, info1, id_index)
+                    line2 = format_detection_line(cam2_num, info2, id_index)
                     f.write(f"{line1}\n")
                     f.write(f"{line2}\n")
 
                 # Handle overflow if one tracklet is longer than the other
                 if len(info_cam1) > min_length:
                     for info1 in info_cam1[min_length:]:
-                        line1 = format_detection_line(cam1, info1, id_index)
+                        line1 = format_detection_line(cam1_num, info1, id_index)
                         f.write(f"{line1}\n")
                 elif len(info_cam2) > min_length:
                     for info2 in info_cam2[min_length:]:
-                        line2 = format_detection_line(cam2, info2, id_index)
+                        line2 = format_detection_line(cam2_num, info2, id_index)
                         f.write(f"{line2}\n")
             print(f"Pair with id {id_index} saved.")
             id_index += 1
@@ -197,12 +203,13 @@ def main(tracklet_dict):
             print("Unknown command. Please enter 'a', 'd', or 'q'.")
 
 if __name__ == "__main__":
-    cam_list = ['imagesNB', 'imagesSB']
+    cam_list = ['imagesc003', 'imagesc002']
 
     tracklet_dict = {}
     for cam in cam_list:
         tracklet_dict[cam] = load_data(cam)
     print("Loaded tracklet data.")
-    print(f'len of NB is {len(tracklet_dict["imagesNB"])}')
-    print(f'len of SB is {len(tracklet_dict["imagesSB"])}')
-    main(tracklet_dict)
+    print(f'len of {cam_list[0]} is {len(tracklet_dict[f"{cam_list[0]}"])}')
+    print(f'len of {cam_list[1]} is {len(tracklet_dict[f"{cam_list[1]}"])}')
+    main(tracklet_dict,cam_list)
+    print("Finished creating ground truth pairs.")

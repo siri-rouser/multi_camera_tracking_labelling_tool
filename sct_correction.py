@@ -54,6 +54,23 @@ def linear_interpolate(b1: BBox, b2: BBox, alpha: float) -> BBox:
     return [b1[i] + alpha * (b2[i] - b1[i]) for i in range(4)]
 
 
+def break_tracklet(tracks: Tracks, track_id: int, frame_id: int) -> None:
+    """Break tracklet *track_id* at *frame_id*."""
+    track = tracks[track_id]
+    # find the frame to break at
+    for i, (f, _, _) in enumerate(track):
+        if f == frame_id:
+            break
+    else:
+        print("✗ Frame ID not found in track.")
+        return
+    # split the track into two parts
+    new_track = track[i:]
+    tracks[track_id] = track[:i]
+    tracks[int(-1*track_id)] = new_track  # new track ID
+    print(f"✓ Track {track_id} broken at frame {frame_id} into new track with track_id {-1*track_id}.")
+
+
 def interpolate_track(track: Track, max_gap: int = 10) -> Track:
     """Fill small gaps inside *track* by linear bbox interpolation."""
     if len(track) < 2:
@@ -112,12 +129,14 @@ def save_tracks(tracks: Tracks, out_txt: str) -> None:
 
 
 def render_video(tracks: Tracks, img_dir: str, img_pattern: str, fps: int, out_mp4: str):
-    all_frames = sorted({f for trk in tracks.values() for f, _, _ in trk})
+    all_frames = sorted({f-1 for trk in tracks.values() for f, _, _ in trk}) # f-1 to match 0-based indexing
+    print(all_frames)
     if not all_frames:
         print("✗ No frames found – skipping video.")
         return
 
     first_img_path = os.path.join(img_dir, img_pattern % all_frames[0])
+    print(f"Reading first image from {first_img_path} …")
     first_img = cv2.imread(first_img_path)
     if first_img is None:
         print(f"✗ Cannot open first image at {first_img_path}; video skipped.")
@@ -144,7 +163,7 @@ def render_video(tracks: Tracks, img_dir: str, img_pattern: str, fps: int, out_m
                 colour = colour_map.setdefault(tid, tuple(int(c) for c in np.random.randint(0, 255, 3)))
                 x1, y1, x2, y2 = map(int, bb)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
-                cv2.putText(frame, str(tid), (x1, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.6, colour, 2)
+                cv2.putText(frame, str(tid), (x1, y1 - 4), cv2.FONT_HERSHEY_SIMPLEX, 1.5, colour, 2)
         vw.write(frame)
     vw.release()
     print(f"✓ Video written to {out_mp4}")
@@ -156,7 +175,7 @@ def render_video(tracks: Tracks, img_dir: str, img_pattern: str, fps: int, out_m
 def interactive_session(tracks: Tracks, args):
     print("Loaded", len(tracks), "tracks.")
     while True:
-        cmd = input("[i]ntegrate, [d]elete, [w]rite & quit, [q]uit: ").strip().lower()
+        cmd = input("[i]ntegrate, [d]elete, [b]reak, [w]rite & quit, [Q]uit: ").strip().lower()
         if cmd == "i":
             try:
                 t1 = int(input("  trackid1 (kept): "))
@@ -177,11 +196,28 @@ def interactive_session(tracks: Tracks, args):
             out_txt  = f"{args.output_prefix}.txt"
             out_mp4  = f"{args.output_prefix}.mp4"
             save_tracks(tracks, out_txt)
-            render_video(tracks, args.img_dir, args.img_pattern, args.fps, out_mp4)
+            # render_video(tracks, args.img_dir, args.img_pattern, args.fps, out_mp4)
             break
         elif cmd == "q":
             print("Exiting without saving …")
             break
+        elif cmd == "b":
+            try:
+                t = int(input("  trackid to break: "))
+                if t in tracks:
+                    print(f"✓ Track {t} exists.")
+                    for f, bb, cls in tracks[t]:
+                        print(f"  Frame {f}: {bb} (class {cls})")
+                else:
+                    print("✗ Track ID not found.")
+                frame_id = int(input("  frame to break at: "))
+                if frame_id in [f for f, _, _ in tracks[t]]:
+                    print(f"✓ Frame {frame_id} exists in track {t}.")
+                    break_tracklet(tracks, t, frame_id)
+                else:
+                    print("✗ Frame ID not found in track.")
+            except ValueError:
+                print("✗ Invalid input; ID must be integer.")
         else:
             print("✗ Unknown command.")
 
@@ -202,13 +238,14 @@ def parse_args():
 
 def main():
     args = parse_args()
-    args.img_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection/imagesSB/img1'
+    args.img_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection/imagesc001/img1'
     args.fps = 15
     args.output_prefix = f'corrected_mot_{args.tracking_txt.split(".")[0]}'
-    args.max_gap = 20
+    args.max_gap = 150
     if not os.path.isfile(args.tracking_txt):
         sys.exit(f"Tracking file {args.tracking_txt} not found.")
     tracks = load_tracks(args.tracking_txt)
+    print(f"Loaded {len(tracks)} tracks from {args.tracking_txt}.")
     interactive_session(tracks, args)
 
 

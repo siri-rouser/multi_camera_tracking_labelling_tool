@@ -31,8 +31,6 @@ def check_class_id(point,img_file):
             return int(bbox[0])
     return int(input('Enter class id: '))
 
-
-
 # Paths setup
 base_img_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection'
 parser = argparse.ArgumentParser(description="Multi-camera tracking labeling tool")
@@ -47,9 +45,9 @@ delete_display_scale = 0.9
 
 for seq in seqs:
     img_dir = os.path.join(base_img_dir, seq, 'img1')
-    label_dir = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_xy/'
-    label_dir_corrected = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_corrected/'
-    img_dir_corrected = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/images_corrected/'
+    label_dir = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_filtered2/'
+    label_dir_corrected = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_corrected_final/'
+    img_dir_corrected = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/images_corrected_final/'
     img_files = sorted(os.listdir(img_dir))
     os.makedirs(label_dir_corrected, exist_ok=True)
     os.makedirs(img_dir_corrected, exist_ok=True)
@@ -75,7 +73,6 @@ for seq in seqs:
         if img is None:
             print(f"Failed to read image {img_path}")
             continue
-
         if os.path.exists(txt_path):
             with open(txt_path, 'r') as f:
                 bboxes = [list(map(float, line.strip().split())) for line in f.readlines()]
@@ -85,8 +82,8 @@ for seq in seqs:
         else:
             print(f"Label file {txt_path} does not exist.")
             continue
-
-        window_name = 'Review Image (Press a:add, d:delete, s:save, q:quit)'
+        
+        window_name = f"Review {img_file.split('.')[0]} (Press a:add, d:delete, s:save, q:quit)"
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(window_name, int(2560*display_scale), int(1440*display_scale)) # Resize window to fit the screen
 
@@ -107,24 +104,49 @@ for seq in seqs:
                 cv2.namedWindow(roi_window_name, cv2.WINDOW_NORMAL)
                 cv2.resizeWindow(roi_window_name, int(2560 * display_scale_a), int(1440 * display_scale_a))  # Resize window to fit the screen
                 # Let the user select ROI on the scaled image
-                roi = cv2.selectROI(roi_window_name, img_scaled, False)
-                cv2.destroyWindow(roi_window_name)  # Close the ROI window after selection
+                roi = None
+                key1 = 0 
+                while True:
+                    roi = cv2.selectROI(roi_window_name, img_scaled, False)
+                    key1 = cv2.waitKey(0)
+                    if key1 == 27:  # ESC to cancel
+                        print("Cancelled bbox adding")
+                        cv2.destroyWindow("Draw BBox")
+                        break
+                    if roi is not None:
+                        cv2.destroyWindow(roi_window_name)  # Close the ROI window after selection
 
-                x, y, w, h = map(int, roi)
-                # Convert the coordinates back to the original image scale
-                x = int(x / display_scale_a)
-                y = int(y / display_scale_a)
-                w = int(w / display_scale_a)
-                h = int(h / display_scale_a)
-                x1, y1, x2, y2 = x, y, x + w, y + h
-                central_point = ((x1 + x2) / 2, (y1 + y2) / 2)
-                class_id = check_class_id(central_point,img_files[(IDX-1)])
-                bboxes.append([class_id, x1, y1, x2, y2, 1.0])
-                print("BBox added.")
+                        x, y, w, h = map(int, roi)
+                        # Convert the coordinates back to the original image scale
+                        x = int(x / display_scale_a)
+                        y = int(y / display_scale_a)
+                        w = int(w / display_scale_a)
+                        h = int(h / display_scale_a)
+                        x1, y1, x2, y2 = x, y, x + w, y + h
+                        central_point = ((x1 + x2) / 2, (y1 + y2) / 2)
+                        class_id = check_class_id(central_point,img_files[(IDX-1)])
+                        bboxes.append([class_id, x1, y1, x2, y2, 1.0])
+                        print("BBox added.")
+                        break
+                
+                # cv2.destroyWindow(roi_window_name)  # Close the ROI window after selection
+
+                # x, y, w, h = map(int, roi)
+                # # Convert the coordinates back to the original image scale
+                # x = int(x / display_scale_a)
+                # y = int(y / display_scale_a)
+                # w = int(w / display_scale_a)
+                # h = int(h / display_scale_a)
+                # x1, y1, x2, y2 = x, y, x + w, y + h
+                # central_point = ((x1 + x2) / 2, (y1 + y2) / 2)
+                # class_id = check_class_id(central_point,img_files[(IDX-1)])
+                # bboxes.append([class_id, x1, y1, x2, y2, 1.0])
+                # print("BBox added.")
 
             elif key == ord('d'):
                 print("Click on a bounding box to delete it (press ESC to cancel).")
                 selected_idx = [-1]  # Mutable container to capture selected index
+                key2 = 0
 
                 def mouse_callback(event, x, y, flags, param):
                     if event == cv2.EVENT_LBUTTONDOWN:
@@ -135,7 +157,7 @@ for seq in seqs:
                             if is_point_in_bbox((x_full, y_full), bbox):
                                 selected_idx[0] = idx
                                 print(f"Clicked on bbox index: {idx}")
-                                cv2.destroyWindow("Click to Delete")
+
                                 break
 
                 # Resize image and draw boxes for deletion window
@@ -146,14 +168,14 @@ for seq in seqs:
                     cv2.rectangle(temp_display, (x1_s, y1_s), (x2_s, y2_s), (0, 255, 255), 2)
                     # cv2.putText(temp_display, f"Class {int(cls_id)}", (x1_s, y1_s - 10),
                     #             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-s
+
                 cv2.namedWindow("Click to Delete", cv2.WINDOW_NORMAL)
                 cv2.resizeWindow("Click to Delete", int(2560 * delete_display_scale), int(1440 * delete_display_scale))  # Resize window to fit the screen
                 cv2.setMouseCallback("Click to Delete", mouse_callback)
                 cv2.imshow("Click to Delete", temp_display)
 
                 while True:
-                    key2 = cv2.waitKey(0)
+                    print(selected_idx[0])
                     if key2 == 27:  # ESC to cancel
                         print("Cancelled deletion.")
                         cv2.destroyWindow("Click to Delete")
@@ -162,6 +184,7 @@ s
                         removed_bbox = bboxes.pop(selected_idx[0])
                         print(f"Deleted bbox: {removed_bbox}")
                         break
+                    key2 = cv2.waitKey(0)
 
             elif key == ord('s'):
             # Draw processed bounding boxes on the image
@@ -170,8 +193,8 @@ s
                     cv2.putText(img, f'Class {int(cls_id)}', (int(x1), int(y1)-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-                # Save the image with processed bounding boxes
-                cv2.imwrite(corrected_img_path, img)
+                # # Save the image with processed bounding boxes
+                # cv2.imwrite(corrected_img_path, img)
 
                 with open(txt_path_corrected, 'w') as f:
                     for bbox in bboxes:

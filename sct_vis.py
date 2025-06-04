@@ -13,13 +13,7 @@ def main(arg):
     base_detection = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection'
     
     # Interpolated tracking result file (assumed generated previously)
-    if seq == 'imagesSB':
-        interp_file = 'stream2.txt'
-    elif seq == 'imagesNB':
-        interp_file = 'stream1.txt'
-    else:
-        print(f"Unknown sequence: {seq}")
-        return
+    interp_file = os.path.join(base_detect_merge, seq, f"{seq}_mot_interpolated.txt")
     # Directory containing original images (full resolution)
     img_dir = os.path.join(base_detection, seq, 'img1')
     # Output video directory and file
