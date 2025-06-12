@@ -268,7 +268,7 @@ def eval(test, pred, **kwargs):
             maxFrameId += mfid
 
         # compute multi-camera tracking evaluation stats
-        multiCamAcc = mm.utils.compare_to_groundtruth(pd.concat(gtds), pd.concat(tsds), 'iou', distfields=None, distth=0.6)
+        multiCamAcc = mm.utils.compare_to_groundtruth(pd.concat(gtds), pd.concat(tsds), 'iou', distfields=None, distth=0.7)
         metrics=list(mm.metrics.motchallenge_metrics)
         metrics.extend(['num_frames','idfp','idfn','idtp'])
         print(metrics)

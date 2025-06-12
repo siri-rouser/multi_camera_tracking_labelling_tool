@@ -3,13 +3,13 @@ import cv2
 import sys
 
 x_low_threshold = 0
-x_high_threshold = 3350
-y_low_threshold = 60
+x_high_threshold = 3840
+y_low_threshold = 250
 y_high_threshold = 2160
 
-area = [2694,0, 3350, 200]  # x1, y1, x2, y2
+area = [2580,0, 3840, 360]  # x1, y1, x2, y2
 
-cam_id = 'imagesc004'
+cam_id = 'imagesc003'
 
 def is_point_in_bbox(point, bbox):
     x, y = point
@@ -22,7 +22,7 @@ processed_label_dir = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_
 
 points = []
 
-points.append([(573,142), 1, 2]) 
+points.append([(330,406), 1, 2]) 
 points.append([(319,281), 0.6, 2]) 
 points.append([(154,325), 0.8, 2]) 
 points.append([(30,370), 0.6, 2])

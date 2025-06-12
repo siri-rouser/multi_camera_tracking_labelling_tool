@@ -76,7 +76,7 @@ def main():
 
     # Use motmetrics' utility function to compare to ground truth using IOU.
     try:
-        acc = mm.utils.compare_to_groundtruth(gt, pred, "iou")
+        acc = mm.utils.compare_to_groundtruth(gt, pred, dist='iou', distfields=None, distth=0.5)
     except Exception as e:
         sys.exit("Error during evaluation: {}".format(e))
     
