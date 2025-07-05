@@ -6,6 +6,7 @@ ID_COUNT = 0
 
 import pandas as pd
 import os
+import json
 
 def format_detection_line(cam_num, info, id_index):
     """
@@ -173,7 +174,7 @@ def vehicle_number_count(reid_dict):
     print(f"Total unique vehicles across all cameras: {len(Atracks)}")
 
 if __name__ == "__main__":
-    file_path = 'Vehicle Tracking.xlsx'
+    file_path = '../temp_res/Vehicle Tracking Final copy.xlsx'
     reid_dict = {}
     xls = pd.ExcelFile(file_path)
     sheet_names = xls.sheet_names
@@ -216,6 +217,8 @@ if __name__ == "__main__":
             print(f"Merging {key} into final_redict")
             final_redict = reid_dict_cat(final_redict, reid_dict[key])
 
+    with open('final_redict.json', 'w') as f:
+        json.dump(final_redict, f, indent=2)
     print("reid_dict merge complete. . . ")
     print('Writing to Multi_CAM_Ground_Turth.txt...')
 

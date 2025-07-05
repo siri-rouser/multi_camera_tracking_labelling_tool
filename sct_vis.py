@@ -13,7 +13,7 @@ def main(arg):
     base_detection = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detection'
     
     # Interpolated tracking result file (assumed generated previously)
-    interp_file = os.path.join(base_detect_merge, seq, f"{seq}_mot_interpolated.txt")
+    interp_file = os.path.join(base_detect_merge, seq, f"{seq}_mot_interpolated_final.txt")
     # Directory containing original images (full resolution)
     img_dir = os.path.join(base_detection, seq, 'img1')
     # Output video directory and file
@@ -42,7 +42,7 @@ def main(arg):
             else:
                 if frame < track_bounds[track_id][0]:
                     track_bounds[track_id][0] = frame
-                if frame > track_bounds[track_id][1]:
+                if frame > track_bounds[track_id][1]: 
                     track_bounds[track_id][1] = frame
 
     # Determine overall frame range

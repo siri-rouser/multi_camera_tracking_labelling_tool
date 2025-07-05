@@ -64,8 +64,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Evaluate single camera tracking results using motmetrics."
     )
-    parser.add_argument("groundtruth", help="Path to ground truth txt file")
     parser.add_argument("prediction", help="Path to prediction txt file")
+    parser.add_argument("groundtruth", help="Path to ground truth txt file")
     args = parser.parse_args()
     
     # Load ground truth and prediction data.

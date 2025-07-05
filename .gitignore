@@ -3,3 +3,8 @@
 
 # Ignore all text files
 *.txt
+
+*.xls
+*.xlsx
+
+/tem_res/

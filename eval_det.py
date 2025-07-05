@@ -123,11 +123,11 @@ def evaluate_detection(gt_dir: str, pred_dir: str, iou_thresholds: List[float]):
     results["mAP"] = mAP
     return results
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate detection results")
-    parser.add_argument("gt_dir", help="Ground truth directory")
     parser.add_argument("pred_dir", help="Prediction directory")
+    parser.add_argument("gt_dir", help="Ground truth directory")
+
     args = parser.parse_args()
 
     thresholds = [0.5, 0.75, 0.9]
