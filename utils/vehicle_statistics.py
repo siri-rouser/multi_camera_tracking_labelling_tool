@@ -142,7 +142,11 @@ def draw_pie_charts(allinfo_dict, color_scheme='Set3'):
 
 
 if __name__ == "__main__":
-    file_path = '../temp_res/Vehicle_statistics_mk2.xlsx'
+    '''
+    Main function to read vehicle statistics from an Excel file and draw pie charts.
+    '''
+    
+    file_path = '../temp_res/Vehicle_statistics_mk3.xlsx'
     if not os.path.exists(file_path):
         print(f"File {file_path} does not exist.")
         exit(1)
@@ -154,12 +158,14 @@ if __name__ == "__main__":
         allinfo_dict['Category'] = {}
         allinfo_dict['Make'] = {}
         allinfo_dict['Model'] = {}
+        allinfo_dict['vehicle_num'] = {}
 
     print("Available sheet names:", xls.sheet_names)
 
     for sheet_name in xls.sheet_names:
         info_dict[sheet_name] = {}
         df = pd.read_excel(file_path, sheet_name=sheet_name)
+        allinfo_dict['vehicle_num'][sheet_name] = len(df)
         print(f"Data from sheet '{sheet_name}':")
         print(df.head())
 
@@ -214,4 +220,6 @@ if __name__ == "__main__":
         print(f"{model}: {count}")
 
     draw_pie_charts(allinfo_dict)
+
+    print(allinfo_dict['vehicle_num'])
     

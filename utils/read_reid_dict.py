@@ -174,6 +174,9 @@ def vehicle_number_count(reid_dict):
     print(f"Total unique vehicles across all cameras: {len(Atracks)}")
 
 if __name__ == "__main__":
+    '''
+    Main function to read cross camera information from an Excel file and format it into a txt ground truth file.
+    '''
     file_path = '../temp_res/Vehicle Tracking Final copy.xlsx'
     reid_dict = {}
     xls = pd.ExcelFile(file_path)

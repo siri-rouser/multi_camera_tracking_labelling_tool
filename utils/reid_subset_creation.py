@@ -139,31 +139,32 @@ def filter_data(track_dict,occlusion_area):
                     #print(f"Track ID {track_id} in camera {cam_id} overlaps with occlusion area, skipping.")
                     continue  # There is overlap
             # Skip if this is one of the last 5 frames in the track
-            if track_id_data[cam_id]['max_frame'] - frame < 6 or frame - track_id_data[cam_id]['min_frame'] < 6:
+            if (track_id_data[cam_id]['max_frame'] - frame < 15) or (frame - track_id_data[cam_id]['min_frame'] < 15):
                 #print(f"Track ID {track_id} in camera {cam_id} is in the last 5 frames, skipping.")
                 continue
             if area >= 10000 and high_quality_image_hold is None:
                 high_quality_image_hold = (cam_id, frame, bbox)
-            elif area >= 10000 and high_quality_image is None:
-                high_quality_image = (cam_id, frame, bbox)
+            else:
+                if area >= 10000 and high_quality_image is None:
+                    high_quality_image = (cam_id, frame, bbox)
             
-            if not query_image_dict[track_id] or cam_id not in [item[0] for item in query_image_dict[track_id]]:
-                query_image_dict[track_id].append((cam_id, frame, bbox))
+            # if not query_image_dict[track_id] or cam_id not in [item[0] for item in query_image_dict[track_id]]:
+            #     query_image_dict[track_id].append((cam_id, frame, bbox))
             
             flag_q += 1
             flag_t += 1
             flag_train += 1
 
             if idx == len(data) - 1 and high_quality_image_hold is not None:
-                if query_image_dict[track_id]:
-                    query_image_dict[track_id][0] = high_quality_image_hold
+                query_image_dict[track_id].append(high_quality_image_hold)
                 high_quality_image_hold = None
                 continue
 
-            if flag_q % 50 == 0:
-                if area < 10000 and high_quality_image is not None:
-                    query_image_dict[track_id].append(high_quality_image)
-                    high_quality_image = None
+            if flag_q % 45 == 0:
+                if area < 5000:
+                    flag_q = -1
+                else:
+                    query_image_dict[track_id].append((cam_id, frame, bbox))
                     continue
             
             if flag_t % 5 == 0:
@@ -248,7 +249,7 @@ def train_dict_enrich(train_image_dict, sct_track_dict,occlusion_area):
                         #print(f"Track ID {track_id} in camera {cam_id} overlaps with occlusion area, skipping.")
                         continue  # There is overlap
                 # Skip if this is one of the last 5 frames in the track
-                if track_id_data[cam_id]['max_frame'] - frame < 6 or frame - track_id_data[cam_id]['min_frame'] < 6:
+                if (track_id_data[cam_id]['max_frame'] - frame < 15) or (frame - track_id_data[cam_id]['min_frame'] < 15):
                     #print(f"Track ID {track_id} in camera {cam_id} is in the last 5 frames, skipping.")
                     continue
 
@@ -324,7 +325,7 @@ def save_data(test_image_dict, query_image_dict, train_image_dict, output_dir):
 
     print(f"Start data processing. Total tracks in query_image_dict: {len(query_image_dict)}")
     total_images = sum(len(images) for images in query_image_dict.values())
-    print(f"Total images in test_image_dict: {total_images}")
+    print(f"Total images in query_image_dict: {total_images}")
 
     for track_id, data in tqdm(query_image_dict.items(), desc="Processing query images"):
         for cam_id, frame, bbox in data:
@@ -362,6 +363,9 @@ def save_data(test_image_dict, query_image_dict, train_image_dict, output_dir):
                 f.write(line)
 
 if __name__ == "__main__":
+    '''
+    Main function to create image-based datasets for multi-camera vehicle tracking.
+    '''
     occlusion_area = {}
     occlusion_area['imagesc001'] = (1542,86,2012,350)
     occlusion_area['imagesc002'] = (1704,398,2102,604)

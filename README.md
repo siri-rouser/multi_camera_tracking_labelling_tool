@@ -2,9 +2,52 @@
 
 This repository contains a toolkit for labeling ground truth data in multi-camera object tracking datasets. It provides a suite of tools for manually correcting the outputs of object detectors and trackers, as well as for associating single-camera tracklets into multi-camera trajectories.
 
-**Note before use: You need to have your own object-detector and object-tracker before using this toolkit.**
+## Update
+
+Several utility scripts have been added to the `./utils` directory to support various tasks related to multi-camera tracking and data processing. Below is a brief description of each script:
+
+1. bbox_count.py  
+   Counts the total number of bounding boxes in your detection results.
+
+2. det_filter.py  
+   Filters detection results based on custom thresholds for confidence score and bounding box size.
+
+3. det_label_plot.py  
+   Visualizes detection results by plotting bounding boxes and labels on the images.
+
+4. det_wipe.py  
+   Removes duplicate detections that appear at the same location across multiple frames, based on a confidence threshold.
+
+5. detection_crop_tool.py  
+   Crops and saves all detected objects as individual image files (e.g., img000000_001.jpg, img000000_002.jpg, ...).
+
+6. frame_grab.py  
+   Extracts and saves a specific frame from a video file.
+
+7. get_missing_vehicle.py  
+   Compares the Excel annotation and SCT ground truth to identify missing vehicle IDs in the SCT result.
+
+8. read_reid_dict.py  
+   Converts cross-camera vehicle matching information from an Excel file into a formatted ground truth .txt file. The example of xlsx file is `Vehicle Tracking Example.xlsx`
+
+9. reid_subset_creation.py  
+   Generates image-based datasets for multi-camera vehicle re-identification (ReID) from tracking results.
+
+10. sct2det.py  
+    Converts single-camera tracking (SCT) results into detection label format.
+
+11. vehicle_num_count1.py  
+    Counts the number of unique vehicles from multi-camera tracking ground truth files.
+
+12. vehicle_num_count.py  
+    Counts the number of unique vehicles from single-camera tracking ground truth files.
+
+13. vehicle_statistics.py  
+    Reads vehicle statistics from an Excel file and visualizes the distribution using pie charts.
 
 ## Overview
+
+**Note before use: You need to have your own object-detector and object-tracker before using this toolkit.**
 
 A typical multi-camera tracking pipeline includes:
 1. **Object Detection**
@@ -36,10 +79,7 @@ Navigate to the repository directory and run: poetry install --no-root
 
 ## Script Descriptions
 
-- **wipe_point.py**  
-Removes duplicate detections (above a confidence threshold) that occur at the same location across multiple frames.
-
-- **detection_correction.py**  
+- **detect_correction.py**  
 Allows you to manually review and correct detection results. Use the following keys:
 - `a`: Add a detection.
 - `d`: Delete a detection.
@@ -49,11 +89,15 @@ Allows you to manually review and correct detection results. Use the following k
 - **detection_result_process.py**  
 Saves all detection results locally as text files.
 
-- **detection_crop_tool.py**  
-Crops all corrected detections and saves them locally.
-
+Note: You can do the below to get the post-processed result in a quicker way.
+```
+bash detection_post_process.sh
+```
+---
 - **tracklet_post_process.py**  
 Interpolates single-camera tracking results (for gaps shorter than 5 frames) to prepare the tracklets for multi-camera association.
+
+---
 
 - **cross_camera_match.py**  
 Facilitates manual association of tracklets across different cameras to form the ground truth. Use:
@@ -63,8 +107,12 @@ Facilitates manual association of tracklets across different cameras to form the
 
 The output is saved in `multi_camera_ground_truth.txt` (an example file is provided in the repository).
 
+**Note**: In the updated version: this `cross_camera_match.py` should be replaced by read_reid_dict.py for this current version.
+
+---
+
 - **eval_label.py**  
-Evaluates your results against the ground truth. Usage:python eval_label.py <ground_truth> <prediction>
+Evaluates your results against the multi-camera tracking ground truth. Usage:python eval_label.py <ground_truth> <prediction>
 
 - **GT_vis.py**  
 Visualizes the ground truth results.
@@ -79,16 +127,18 @@ Correct and edit the single camera tracking results
 - `w`: Write and quite the corrected/edited results into .txt and visualize it to a .mp4 file.
 - `q`: quit the program without saving the results.
 
-- **sct_vits.py**  
+- **sct_vis.py**  
 Used for vis the single-camera tracking results by my own tracker.
 
 - **eval_sct.py** 
-Evaluate the results again the single camera tracking ground turth. Usage:python eval_label.py <ground_truth> <prediction>
+Evaluate the results against the single camera tracking ground turth. Usage:python eval_label.py <ground_truth> <prediction>
+
+- **eval_det.py** 
+Evaluate the results against the sobject detection ground turth. It takes a folder path as input, under this folder it should contain detection results e.g. img000000.txt, img000001.txt... Usage:python eval_label.py <ground_truth_path> <prediction_path>
 
 ## Example Directory Structure
 
 An example dataset structure is provided below:
-
 
 ```
 Dataset/
@@ -188,8 +238,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-
-
-
-
