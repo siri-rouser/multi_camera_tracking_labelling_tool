@@ -1,6 +1,5 @@
 import os 
 
-
 def read_mot(mot_file):
     det_data = {}
     with open(mot_file, 'r') as f:

@@ -67,7 +67,7 @@ def read_data(df, cam_id1, cam_id2, name, reid_dict):
         if pd.isna(track_id) or pd.isna(df['Exit'][index]):
             print(f"Skipping track id:{track_id} in {cam_id1} and track id:{df['Exit'][index]} in {cam_id2} due to None values in track_id or Exit.")
             continue
-
+        
         if track_id not in reid_dict[name][cam_id1]:
             reid_dict[name][cam_id1][track_id] = {}
 

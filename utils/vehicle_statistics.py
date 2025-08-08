@@ -57,8 +57,14 @@ def cat_rename(category):
         return 'HGV'
     elif category == 'Small Passenger Vehicles':
         return 'Car'
+    elif category == 'Commercial Van':
+        return 'Van'
+    elif category == 'Pick Up':
+        return 'Pickup'
     else:
+        print(f"Unknown category: {category}")
         return category
+    
     
 def draw_pie_charts(allinfo_dict, color_scheme='Set3'):
     """

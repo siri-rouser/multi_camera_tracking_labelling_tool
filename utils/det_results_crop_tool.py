@@ -21,9 +21,9 @@ for seq in seqs:
     # Original images directory for this sequence
     img_dir = os.path.join(base_img_dir, seq, 'img1')
     # Filtered label files directory
-    label_filtered_dir = os.path.join(base_label_dir, seq, 'labels_filtered')
+    label_filtered_dir = os.path.join(base_label_dir, seq, 'labels_sct2det')
     # Output directory for cropped detection images
-    output_dir = os.path.join(base_label_dir, seq, 'dets_corrected')
+    output_dir = os.path.join(base_label_dir, seq, 'dets_sct2det')
     os.makedirs(output_dir, exist_ok=True)
     
     # Get all label files in the labels_filtered directory
@@ -94,7 +94,7 @@ for seq in seqs:
             print(f"Saved cropped image: {det_img_path}")
             det_num += 1
 
-    output_pkl_path = os.path.join(base_label_dir, seq, f'{seq}_dets.pkl')
+    output_pkl_path = os.path.join(base_label_dir, seq, f'{seq}_sct2dets.pkl')
     with open(output_pkl_path, 'wb') as pkl_file:
         pickle.dump(out_dict, pkl_file)
 
