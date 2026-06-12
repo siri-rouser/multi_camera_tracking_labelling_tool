@@ -1,0 +1,53 @@
+# Example configuration for autocameratransform.py.
+#
+# Replace the sample values with one still frame, the GPS location of the camera,
+# and landmarks that pair image pixels with real-world GPS points.
+
+image_path: examples/frame.jpg
+
+camera_parameters:
+  rectilinear_projection:
+    # Provide one of: focallength_mm, view_x_deg, or view_y_deg.
+    focallength_mm: null
+    view_x_deg: 70
+    view_y_deg: null
+    sensor_width_mm: null
+    sensor_height_mm: null
+
+  spatial_orientation:
+    # Use a number when known, or {min, max, init} when it should be fitted.
+    heading_deg: {min: 0, max: 360, init: 60}
+    tilt_deg: {min: 0, max: 90, init: 70}
+    roll_deg: {min: -20, max: 20, init: 0}
+    elevation_m: {min: 2, max: 20, init: 6}
+    pos_x_m: 0
+    pos_y_m: 0
+
+  brown_lens_distortion:
+    k1: {min: -1.0, max: 1.0, init: 0.0}
+    k2: {min: -0.4, max: 0.4, init: 0.0}
+    k3: 0.0
+
+  gps_location:
+    lat: 51.500000
+    lon: -0.100000
+
+landmarks:
+  - image: {x_px: 607, y_px: 750}
+    gps: {lat: 51.500120, lon: -0.100180, elevation_m: 0.0}
+  - image: {x_px: 1288, y_px: 568}
+    gps: {lat: 51.500210, lon: -0.100090, elevation_m: 0.0}
+  - image: {x_px: 1348, y_px: 441}
+    gps: {lat: 51.500330, lon: -0.100050, elevation_m: 0.0}
+  - image: {x_px: 1170, y_px: 928}
+    gps: {lat: 51.500030, lon: -0.100060, elevation_m: 0.0}
+
+iteration_num: 6000
+
+top_view:
+  do_plot: true
+  # [x_min, x_max, y_min, y_max] in meters around the camera origin.
+  extent: [-100, 100, -100, 100]
+  m_per_pixel: 0.05
+
+save_cam: true

@@ -3,6 +3,7 @@ import os
 import numpy as np
 import random
 import argparse
+import sys
 
 def linear_interpolate(bbox1, bbox2, alpha):
     """
@@ -12,21 +13,18 @@ def linear_interpolate(bbox1, bbox2, alpha):
     """
     return [bbox1[i] + alpha * (bbox2[i] - bbox1[i]) for i in range(4)]
 
-def main():
-    # Base directories (adjust these paths as needed)
+def main(input_file, output_file, seqs):
     base_tracking_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge'
     base_img_dir = '/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/dataset/detection'
-    parser = argparse.ArgumentParser(description="Process tracking sequences.")
-    parser.add_argument('--seqs', nargs='+', required=True, help="List of sequences to process.")
-    args = parser.parse_args()
-
-    seqs = args.seqs
     fps = 15
-    
+
     for seq in seqs:
         print(f"Processing sequence {seq}...")
-        # Path to the tracking result file, e.g. "imagesSB_mot.txt"
-        tracking_file = os.path.join(base_tracking_dir, seq, f"{seq}_mot.txt")
+        # Path to the tracking result file
+        if input_file:
+            tracking_file = input_file
+        else:
+            tracking_file = os.path.join(base_tracking_dir, seq, f"{seq}_mot.txt")
         if not os.path.exists(tracking_file):
             print(f"Tracking file {tracking_file} not found. Skipping {seq}.")
             continue
@@ -37,15 +35,13 @@ def main():
         with open(tracking_file, 'r') as f:
             for line in f:
                 parts = line.strip().split()
-                if len(parts) < 7:
-                    continue
                 frame = int(float(parts[0]))
                 track_id = int(float(parts[1]))
                 x1 = float(parts[2])
                 y1 = float(parts[3])
                 x2 = float(parts[4])
                 y2 = float(parts[5])
-                cls = int(float(parts[6]))
+                cls = int(float(parts[6])) if len(parts) > 6 else 0
                 if track_id not in tracks:
                     tracks[track_id] = []
                 tracks[track_id].append((frame, [x1, y1, x2, y2], cls))
@@ -92,6 +88,9 @@ def main():
         # Save the interpolated results to a text file.
         interpolated_results.sort(key=lambda x: (x[0], x[1]))  # sort by frame then track id
         interpolated_file = os.path.join(base_tracking_dir, seq, f"{seq}_mot_interpolated.txt")
+        if output_file:
+            interpolated_file = output_file
+            
         with open(interpolated_file, 'w') as f:
             for res in interpolated_results:
                 # Format: frame track_id x1 y1 x2 y2 class
@@ -100,4 +99,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Process tracking sequences.")
+    parser.add_argument('--seqs', nargs='+', required=True, help="List of sequences to process.")
+    parser.add_argument('--input_file', type=str, help="Input tracking file.")
+    parser.add_argument('--output_file', type=str, help="Output file for interpolated results.")
+    args = parser.parse_args()
+
+    base_tracking_dir = args.input_file if args.input_file else None
+    output_dir = args.output_file if args.output_file else None
+    main(base_tracking_dir, output_dir, args.seqs)

@@ -45,7 +45,7 @@ delete_display_scale = 0.9
 
 for seq in seqs:
     img_dir = os.path.join(base_img_dir, seq, 'img1')
-    label_dir = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_filtered2/'
+    label_dir = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_xy_v11/'
     label_dir_corrected = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/labels_corrected_final/'
     img_dir_corrected = f'/home/yuqiang/yl4300/project/MCVT_YQ/datasets/algorithm_results/detect_merge/{seq}/images_corrected_final/'
     img_files = sorted(os.listdir(img_dir))

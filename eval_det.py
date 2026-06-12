@@ -54,71 +54,81 @@ def compute_ap(rec: np.ndarray, prec: np.ndarray) -> float:
 
 
 def evaluate_detection(gt_dir: str, pred_dir: str, iou_thresholds: List[float]):
-    """Evaluate detection results under given IoU thresholds."""
+    """Evaluate detection results under given IoU thresholds, ignoring class differences."""
     gt_files = sorted([f for f in os.listdir(gt_dir) if f.endswith(".txt")])
+    pred_files = sorted([f for f in os.listdir(pred_dir) if f.endswith(".txt")])
+    print(f"Number of GT files: {len(gt_files)}")
+    print(f"Number of prediction files: {len(pred_files)}")
 
-    # Load ground truths and predictions
-    gts: Dict[str, List[Tuple[int, float, float, float, float, float]]] = {}
-    preds: List[Tuple[str, int, float, float, float, float, float]] = []
-    classes = set()
+    # Load ground truths and predictions (ignore class information)
+    gts: Dict[str, List[Tuple[float, float, float, float]]] = {}
+    preds: List[Tuple[str, float, float, float, float, float]] = []
+
     for fname in gt_files:
         gt_path = os.path.join(gt_dir, fname)
         gt_boxes = parse_label_file(gt_path)
-        gts[fname] = gt_boxes
-        for b in gt_boxes:
-            classes.add(b[0])
+        # Store only bounding box coordinates, ignore class
+        gts[fname] = [(b[1], b[2], b[3], b[4]) for b in gt_boxes]
 
         pred_path = os.path.join(pred_dir, fname)
         pred_boxes = parse_label_file(pred_path, with_score=True)
+        # Store filename, bounding box coordinates and score, ignore class
         for b in pred_boxes:
-            preds.append((fname, b[0], b[1], b[2], b[3], b[4], b[5]))
-            classes.add(b[0])
+            preds.append((fname, b[1], b[2], b[3], b[4], b[5]))
+
+    print(f"length of predictions: {len(preds)}")
+    print(f"length of ground truths: {sum(len(v) for v in gts.values())}")
 
     results = {}
     for thr in iou_thresholds:
-        ap_per_class = []
-        for cls in classes:
-            npos = 0
-            gt_used = defaultdict(list)
-            for fname, boxes in gts.items():
-                for idx, b in enumerate(boxes):
-                    if b[0] == cls:
-                        npos += 1
-                        gt_used[fname].append(False)
-            if npos == 0:
-                continue
+        # Count total number of ground truth boxes across all classes
+        npos = sum(len(boxes) for boxes in gts.values())
+        if npos == 0:
+            results[thr] = 0.0
+            continue
 
-            predictions = [p for p in preds if p[1] == cls]
-            predictions.sort(key=lambda x: x[6], reverse=True)
+        # Create a tracking structure for used ground truth boxes
+        gt_used = {}
+        for fname, boxes in gts.items():
+            gt_used[fname] = [False] * len(boxes)
 
-            tp = np.zeros(len(predictions))
-            fp = np.zeros(len(predictions))
-            for i, p in enumerate(predictions):
-                fname, _, x1, y1, x2, y2, score = p
-                max_iou = 0.0
-                max_idx = -1
-                boxes = [b for b in gts.get(fname, []) if b[0] == cls]
-                for j, b in enumerate(boxes):
-                    iou = compute_iou((x1, y1, x2, y2), (b[1], b[2], b[3], b[4]))
-                    if iou > max_iou:
-                        max_iou = iou
-                        max_idx = j
-                if max_iou >= thr and not gt_used[fname][max_idx]:
-                    tp[i] = 1
-                    gt_used[fname][max_idx] = True
-                else:
-                    fp[i] = 1
+        # Sort all predictions by confidence score (descending)
+        preds.sort(key=lambda x: x[5], reverse=True)
 
-            if tp.size == 0:
-                ap_per_class.append(0.0)
-                continue
-            tp_cum = np.cumsum(tp)
-            fp_cum = np.cumsum(fp)
-            rec = tp_cum / npos
-            prec = tp_cum / (tp_cum + fp_cum)
-            ap = compute_ap(rec, prec)
-            ap_per_class.append(ap)
-        results[thr] = np.mean(ap_per_class) if ap_per_class else 0.0
+        tp = np.zeros(len(preds))
+        fp = np.zeros(len(preds))
+        
+        for i, p in enumerate(preds):
+            fname, x1, y1, x2, y2, score = p
+            max_iou = 0.0
+            max_idx = -1
+            
+            # Find best matching ground truth box in the same frame
+            boxes = gts.get(fname, [])
+            for j, gt_box in enumerate(boxes):
+                iou = compute_iou((x1, y1, x2, y2), gt_box)
+                if iou > max_iou:
+                    max_iou = iou
+                    max_idx = j
+            
+            # Check if the match is above threshold and not already used
+            if max_iou >= thr and max_idx != -1 and not gt_used[fname][max_idx]:
+                tp[i] = 1
+                gt_used[fname][max_idx] = True
+            else:
+                fp[i] = 1
+
+        if tp.size == 0:
+            results[thr] = 0.0
+            continue
+            
+        tp_cum = np.cumsum(tp)
+        fp_cum = np.cumsum(fp)
+        rec = tp_cum / npos
+        prec = tp_cum / (tp_cum + fp_cum)
+        ap = compute_ap(rec, prec)
+        results[thr] = ap
+        
     mAP = np.mean(list(results.values())) if results else 0.0
     results["mAP"] = mAP
     return results

@@ -4,6 +4,7 @@ This script reads a dictionary from a file and prints its contents.
 
 ID_COUNT = 0 
 
+import argparse
 import pandas as pd
 import os
 import json
@@ -177,7 +178,11 @@ if __name__ == "__main__":
     '''
     Main function to read cross camera information from an Excel file and format it into a txt ground truth file.
     '''
-    file_path = '../temp_res/Vehicle Tracking Final copy.xlsx'
+    parser = argparse.ArgumentParser(description='Create MCVT ground truth data from Excel file.')
+    parser.add_argument('file_path', nargs='?', default='../temp_res/Vehicle Tracking Final copy.xlsx',
+                        help='Path to the Excel file (default: ../temp_res/Vehicle Tracking Final copy.xlsx)')
+    args = parser.parse_args()
+    file_path = args.file_path
     reid_dict = {}
     xls = pd.ExcelFile(file_path)
     sheet_names = xls.sheet_names

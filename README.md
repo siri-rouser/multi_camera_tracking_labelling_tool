@@ -1,7 +1,10 @@
 # Multi-Camera Tracking Labeling Tool
 
-This repository contains a toolkit for labeling ground truth data in multi-camera object tracking datasets. It provides a suite of tools for manually correcting the outputs of object detectors and trackers, as well as for associating single-camera tracklets into multi-camera trajectories.
+This repository is a toolkit for labeling ground truth data in multi-camera object tracking datasets. It provides a suite of tools for manually correcting the outputs of object detectors and trackers, as well as for associating single-camera tracklets into multi-camera trajectories.
 
+We use this toolkit to label [RoundaboutHD](https://github.com/siri-rouser/RoundaboutHD).
+
+<!-- 
 ## Update
 
 Several utility scripts have been added to the `./utils` directory to support various tasks related to multi-camera tracking and data processing. Below is a brief description of each script:
@@ -28,7 +31,7 @@ Several utility scripts have been added to the `./utils` directory to support va
    Compares the Excel annotation and SCT ground truth to identify missing vehicle IDs in the SCT result.
 
 8. read_reid_dict.py  
-   Converts cross-camera vehicle matching information from an Excel file into a formatted ground truth .txt file. The example of xlsx file is `Vehicle Tracking Example.xlsx`
+   Converts cross-camera vehicle matching information from an Excel file into a formatted ground truth .txt file. The example xlsx file is `Vehicle Tracking Example.xlsx`.
 
 9. reid_subset_creation.py  
    Generates image-based datasets for multi-camera vehicle re-identification (ReID) from tracking results.
@@ -44,99 +47,102 @@ Several utility scripts have been added to the `./utils` directory to support va
 
 13. vehicle_statistics.py  
     Reads vehicle statistics from an Excel file and visualizes the distribution using pie charts.
+-->
 
-## Overview
-
-**Note before use: You need to have your own object-detector and object-tracker before using this toolkit.**
-
-A typical multi-camera tracking pipeline includes:
-1. **Object Detection**
-2. **Feature Extraction**
-3. **Single-Camera Tracking**
-4. **Multi-Camera Tracking**
+## Functionality Overview
 
 This toolkit is designed to help you:
-- **Manually correct detection results**: We use the YOLOv12x.pt model for object detection, ResNet101 for feature extraction, and SMILEtrack for tracking.
-- **Associate single-camera tracklets into multi-camera trajectories**: Generate ground truth files with the following format:{cam} {id_index} {frame_num} {x1:.2f} {y1:.2f} {width:.2f} {height:.2f} {xworld} {yworld}
 
-where:
-- **cam**: Camera ID
-- **id_index**: Object ID
-- **frame_num**: Frame number
-- **x1**: Left x-coordinate of the bounding box
-- **y1**: Top y-coordinate of the bounding box
-- **width**: Width of the bounding box
-- **height**: Height of the bounding box
-- **xworld, yworld**: World coordinates
+- **Manually correct detection and tracking results**: We use the YOLOv12x.pt model for object detection, ResNet101 for feature extraction, and SMILEtrack for tracking.
+- **Associate single-camera tracklets into multi-camera trajectories**: We use an Excel file (see `Vehicle Tracking Example.xlsx`) to generate MCVT ground truth files in the following format: `{cam} {id} {frame} {x1} {y1} {width} {height} {xworld} {yworld}`
+- **Visualization**: Tools are provided to visualize both single-camera and multi-camera tracking results.
+
+> **Note:** You need to have your own object detector and object tracker before using this toolkit.
 
 ## Installation
 
 1. **Install Poetry**  
- If you haven't installed Poetry, run: pip install poetry
+   If you haven't installed Poetry yet, run:
+   ```
+   pip install poetry
+   ```
 
-2. **Install Project Dependencies**  
-Navigate to the repository directory and run: poetry install --no-root
+2. **Install project dependencies**  
+   Navigate to the repository directory and run:
+   ```
+   poetry install --no-root
+   ```
 
-## Script Descriptions
+## Main Script Descriptions
 
 - **detect_correction.py**  
-Allows you to manually review and correct detection results. Use the following keys:
-- `a`: Add a detection.
-- `d`: Delete a detection.
-- `s`: Save the corrections for the current frame.
-- `q`: Quit the program.
+  Allows you to manually review and correct detection results. Keybindings:
+  | Key | Action |
+  |-----|--------|
+  | `a` | Add a detection |
+  | `d` | Delete a detection |
+  | `s` | Save corrections for the current frame |
+  | `q` | Quit the program |
 
 - **detection_result_process.py**  
-Saves all detection results locally as text files.
-
-Note: You can do the below to get the post-processed result in a quicker way.
-```
-bash detection_post_process.sh
-```
----
-- **tracklet_post_process.py**  
-Interpolates single-camera tracking results (for gaps shorter than 5 frames) to prepare the tracklets for multi-camera association.
-
----
-
-- **cross_camera_match.py**  
-Facilitates manual association of tracklets across different cameras to form the ground truth. Use:
-- `a`: Add an association between tracklets from different cameras.
-- `d`: Delete an existing association.
-- `q`: Save the associations and exit.
-
-The output is saved in `multi_camera_ground_truth.txt` (an example file is provided in the repository).
-
-**Note**: In the updated version: this `cross_camera_match.py` should be replaced by read_reid_dict.py for this current version.
-
----
-
-- **eval_label.py**  
-Evaluates your results against the multi-camera tracking ground truth. Usage:python eval_label.py <ground_truth> <prediction>
-
-- **GT_vis.py**  
-Visualizes the ground truth results.
-
-- **sct_video_process.py**  
-Visualizes and interpolate the single camera tracking results(for GT).
+  Saves all detection results locally as text files.  
+  > Tip: You can run the full post-processing pipeline more quickly with:
+  > ```
+  > bash detection_post_process.sh
+  > ```
 
 - **sct_correction.py**  
-Correct and edit the single camera tracking results
-- `i`: Intergated two tracklets into one unified trajectory
-- `d`: Delete an existing tracklet.
-- `w`: Write and quite the corrected/edited results into .txt and visualize it to a .mp4 file.
-- `q`: quit the program without saving the results.
+  Correct and edit single-camera tracking results. Keybindings:
+  | Key | Action |
+  |-----|--------|
+  | `i` | Merge two tracklets into one unified trajectory |
+  | `d` | Delete an existing tracklet |
+  | `w` | Save results to `.txt` and render a `.mp4` visualization |
+  | `q` | Quit without saving |
 
-- **sct_vis.py**  
-Used for vis the single-camera tracking results by my own tracker.
+- **tracklet_post_process.py**  
+  Interpolates single-camera tracking results (for gaps shorter than 5 frames) to prepare tracklets for multi-camera association.
 
-- **eval_sct.py** 
-Evaluate the results against the single camera tracking ground turth. Usage:python eval_label.py <ground_truth> <prediction>
+- **cross_camera_match.py** *(Previous Version)*  
+  Facilitates manual association of tracklets across cameras to form the ground truth. Keybindings:
+  | Key | Action |
+  |-----|--------|
+  | `a` | Add an association between tracklets from different cameras |
+  | `d` | Delete an existing association |
+  | `q` | Save associations and exit |
 
-- **eval_det.py** 
-Evaluate the results against the sobject detection ground turth. It takes a folder path as input, under this folder it should contain detection results e.g. img000000.txt, img000001.txt... Usage:python eval_label.py <ground_truth_path> <prediction_path>
+  Output is saved to `multi_camera_ground_truth.txt` (an example file is included in the repository).
 
-## Example Directory Structure
+  > **Note:** In the current version, `cross_camera_match.py` has been replaced by `MCVT_data_creation.py`.
+
+- **MCVT_data_creation.py**  
+  We found `cross_camera_match.py` to be impractical when dealing with many cameras. Instead, all potential camera pairs are saved to an Excel file, which is then read to generate the MCVT ground truth.
+
+  ```
+  python MCVT_data_creation.py /path/to/your/file.xlsx
+  ```
+
+## Evaluation
+
+- **eval_label.py**  
+  Evaluates results against the multi-camera tracking ground truth.
+  ```
+  python eval_label.py <ground_truth> <prediction>
+  ```
+
+- **eval_sct.py**  
+  Evaluates results against the single-camera tracking ground truth.
+  ```
+  python eval_sct.py <ground_truth> <prediction>
+  ```
+
+- **eval_det.py**  
+  Evaluates results against the object detection ground truth. Takes a folder path as input; the folder should contain per-frame detection files (e.g., `img000000.txt`, `img000001.txt`, ...).
+  ```
+  python eval_det.py <ground_truth_path> <prediction_path>
+  ```
+
+<!-- ## Example Directory Structure
 
 An example dataset structure is provided below:
 
@@ -193,23 +199,25 @@ Dataset/
     │   │   └── img000xxxxxxx.txt
     │   └── tracking_video/
     │       └── imagesNB_tracking_interpolated.mp4
-```
+``` -->
 
 ## Workflow Example
 
-This workflow outlines the pipeline for **Multi-Camera Multi-Object (Vehicle) Tracking**:
+This workflow outlines the full pipeline for **Multi-Camera Multi-Object (Vehicle) Tracking**:
 
 1. **Object Detection** (e.g., YOLO)
-2. **wipe_point.py** (Noise removal from detections)
-3. **detect_correction.py** (Bounding box refinement)
-4. **detection_crop_tppl.py** (Prepare detections for feature extraction)
-5. **Feature Extraction** (e.g., ResNet)
-6. **Single Camera Tracker** (e.g., DeepSORT)
-7. **sct_video_process.py** (Post-process single-camera tracking results1)
-8. **sct_correction.py** (Post-process single-camera tracking results2)
-9. **cross_camera_match.py** (Match objects across multiple cameras)
-10. **GT_vis.py** (Visualization of tracking results)
+2. **detect_correction.py** — Bounding box refinement
+3. **detection_crop_tool.py** — Prepare detections for feature extraction
+4. **Feature Extraction** (e.g., ResNet)
+5. **Single Camera Tracker** (e.g., DeepSORT)
+6. **sct_video_process.py** — Post-process single-camera tracking results (step 1)
+7. **sct_correction.py** — Post-process single-camera tracking results (step 2)
+8. Manually inspect SCT results and create the Excel annotation file
+9. **MCVT_data_creation.py** — Generate multi-camera ground truth from the Excel file
+10. **MCVT_vis.py** — Visualization of tracking results
 
+## Other Functions
+See /vis and /geo-mapping
 
 ## Contributing
 

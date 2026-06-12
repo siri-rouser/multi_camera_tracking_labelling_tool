@@ -259,7 +259,7 @@ def eval(test, pred, **kwargs):
             if k in tscams:
                 tsd = ts.query('CameraId == %d' % k)
                 tsd = tsd[['FrameId', 'Id', 'X', 'Y', 'Width', 'Height']]
-                # max FrameId among both gtd and tsd
+                # max FrameId among both gtd and tsdí
                 mfid = max(mfid, tsd['FrameId'].max())
                 tsd['FrameId'] += maxFrameId
                 tsd = tsd.set_index(['FrameId', 'Id'])
@@ -268,7 +268,7 @@ def eval(test, pred, **kwargs):
             maxFrameId += mfid
 
         # compute multi-camera tracking evaluation stats
-        multiCamAcc = mm.utils.compare_to_groundtruth(pd.concat(gtds), pd.concat(tsds), 'iou', distfields=None, distth=0.7)
+        multiCamAcc = mm.utils.compare_to_groundtruth(pd.concat(gtds), pd.concat(tsds), 'iou', distfields=None, distth=0.7) # distth larger is more loose
         metrics=list(mm.metrics.motchallenge_metrics)
         metrics.extend(['num_frames','idfp','idfn','idtp'])
         print(metrics)
