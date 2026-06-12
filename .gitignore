@@ -9,9 +9,12 @@ __pycache__/
 
 *.xls
 
+/temp_res/
 /tem_res/
 
-/CLM
+/CLM/
+/det_gt/
+/utils/
 
 *.png
 
